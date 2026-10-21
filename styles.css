@@ -1,5 +1,4 @@
-/* Dark Emerald Theme Palette */
-:root {
+﻿:root {
   --bg-color: #0d1b1e;
   --card-bg: #162a2d;
   --header-bg: rgba(13, 27, 30, 0.9);
@@ -31,7 +30,6 @@ body {
   padding: 0 1.5rem;
 }
 
-/* Sticky Header */
 .sticky-header {
   position: sticky;
   top: 0;
@@ -50,7 +48,6 @@ body {
   font-size: 1.75rem;
   color: var(--primary-color);
   text-align: center;
-  letter-spacing: -0.5px;
 }
 
 .brand .tagline {
@@ -59,7 +56,6 @@ body {
   text-align: center;
 }
 
-/* Search Controls */
 .search-form {
   display: flex;
   gap: 0.5rem;
@@ -99,7 +95,6 @@ button {
   border: none;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 #search-btn {
@@ -122,7 +117,6 @@ button {
   color: var(--text-main);
 }
 
-/* Category Chips */
 .chips-container {
   display: flex;
   justify-content: center;
@@ -145,7 +139,6 @@ button {
   color: var(--primary-color);
 }
 
-/* Status Line */
 .status-msg {
   text-align: center;
   color: var(--text-muted);
@@ -153,9 +146,8 @@ button {
   font-size: 0.95rem;
 }
 
-/* Responsive CSS Grid */
 .results-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.5rem;
 }
