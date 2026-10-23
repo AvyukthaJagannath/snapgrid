@@ -1,100 +1,100 @@
-﻿// 1. Select DOM elements
-const searchForm = document.getElementById("search-form");
-const searchInput = document.getElementById("search-input");
-const resultsContainer = document.getElementById("results");
+﻿// Select DOM elements from your index.html
+const searchForm = document.getElementById('search-form');
+const searchInput = document.getElementById('search-input');
+const clearBtn = document.getElementById('clear-btn');
+const statusMsg = document.getElementById('status');
+const resultsGrid = document.getElementById('results');
+const categoryChips = document.querySelectorAll('.chip');
 
-// Create/Select status element for the Custom Enhancement (Result Count)
-let statusMessage = document.getElementById("status-message");
-if (!statusMessage) {
-  statusMessage = document.createElement("p");
-  statusMessage.id = "status-message";
-  statusMessage.style.margin = "1rem 0";
-  statusMessage.style.fontWeight = "bold";
-  resultsContainer.parentNode.insertBefore(statusMessage, resultsContainer);
-}
-
-// 2. Submit Event Listener
-searchForm.addEventListener("submit", async (event) => {
-  event.preventDefault(); // Stop page reload
-
+// 1. Handle Form Submission
+searchForm.addEventListener('submit', (e) => {
+  e.preventDefault();
   const query = searchInput.value.trim();
-
-  // Task 4: Ignore empty searches
-  if (!query) return;
-
-  await performSearch(query);
+  if (query) {
+    fetchImages(query);
+  }
 });
 
-// 3. Fetch Function
-async function performSearch(query) {
+// 2. Handle Category Chips Click
+categoryChips.forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const query = chip.textContent.trim();
+    searchInput.value = query;
+    fetchImages(query);
+  });
+});
+
+// 3. Handle Clear Button Reset
+clearBtn.addEventListener('click', () => {
+  resultsGrid.innerHTML = '';
+  statusMsg.textContent = 'Search for a topic above to explore images.';
+});
+
+// Main async function to handle API requests and state management
+async function fetchImages(query) {
+  // --- STATE 1: LOADING STATE ---
+  resultsGrid.innerHTML = ''; // Clear existing cards
+  statusMsg.textContent = `Searching images for "${query}"...`; // Show loading status[cite: 1]
+
   try {
-    const url =
-      "https://commons.wikimedia.org/w/api.php?action=query" +
-      "&generator=search&gsrsearch=" + encodeURIComponent(query) +
-      "&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url&iiurlwidth=300&format=json&origin=*";
+    // Full HTTPS API URL for Wikimedia Commons API
+    const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(
+      query
+    )}&gsrlimit=16&prop=pageimages&piprop=thumbnail&pithumbsize=400&format=json&origin=*`;
 
     const response = await fetch(url);
 
-    // Task 2: Check response.ok
+    // Check if network response is valid
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
 
-    // Convert API pages object to array
-    const items = data.query?.pages ? Object.values(data.query.pages) : [];
+    // --- STATE 2: EMPTY STATE ---
+    if (!data.query || !data.query.pages) {
+      statusMsg.textContent = `No images found for "${query}". Try searching another topic!`; //[cite: 1]
+      return;
+    }
 
-    // Pass items directly to render
-    renderResults(items, query);
+    const items = Object.values(data.query.pages);
+
+    // Filter items to ensure they contain displayable image thumbnails
+    const itemsWithImages = items.filter((item) => item.thumbnail);
+
+    if (itemsWithImages.length === 0) {
+      statusMsg.textContent = `No displayable image previews found for "${query}". Try another search term.`; //[cite: 1]
+      return;
+    }
+
+    // --- STATE 3: RESULTS STATE ---
+    statusMsg.textContent = `Showing ${itemsWithImages.length} results for "${query}"`; //[cite: 1]
+    renderResults(itemsWithImages);
+
   } catch (error) {
-    console.error("Error fetching data:", error);
-    statusMessage.textContent = "Failed to load results. Please try again.";
+    // --- STATE 4: ERROR STATE ---
+    console.error('Fetch error:', error);
+    statusMsg.textContent = 'Something went wrong while loading images. Please check your connection and try again.'; //[cite: 1]
   }
 }
 
-// 4. Render Function
-function renderResults(items, query) {
-  // Clear previous results
-  resultsContainer.innerHTML = "";
-  statusMessage.textContent = "";
-
-  // Task 5 (Enhancement): Show result count status
-  if (items.length === 0) {
-    statusMessage.textContent = `No results found for "${query}".`;
-    return;
-  }
-
-  statusMessage.textContent = `Showing ${items.length} results for "${query}"`;
-
-  // Build card elements
+// Function to dynamically render image cards
+function renderResults(items) {
   items.forEach((item) => {
-    const imageUrl = item.imageinfo?.[0]?.thumburl;
-    const pageUrl = item.imageinfo?.[0]?.descriptionurl;
-    const title = item.title.replace("File:", "");
+    const card = document.createElement('article');
+    card.className = 'image-card';
 
-    if (!imageUrl) return;
+    const img = document.createElement('img');
+    img.src = item.thumbnail.source;
+    img.alt = item.title ? item.title.replace(/^File:/, '') : 'Search image';
+    img.loading = 'lazy'; // Improve page loading performance
 
-    const card = document.createElement("article");
-    card.className = "card";
+    const title = document.createElement('p');
+    title.className = 'card-title';
+    title.textContent = item.title ? item.title.replace(/^File:/, '') : 'Untitled image';
 
-    // Enhancement: Clickable link opening source page
-    const link = document.createElement("a");
-    link.href = pageUrl || "#";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-
-    const img = document.createElement("img");
-    img.src = imageUrl;
-    img.alt = title;
-
-    const caption = document.createElement("p");
-    caption.textContent = title;
-
-    link.appendChild(img);
-    card.appendChild(link);
-    card.appendChild(caption);
-
-    resultsContainer.appendChild(card);
+    card.appendChild(img);
+    card.appendChild(title);
+    resultsGrid.appendChild(card);
   });
 }
