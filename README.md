@@ -1,4 +1,4 @@
-# SnapGrid
+﻿# SnapGrid
 
 SnapGrid is a responsive image search web application designed to help users quickly discover high-resolution visual content.
 
